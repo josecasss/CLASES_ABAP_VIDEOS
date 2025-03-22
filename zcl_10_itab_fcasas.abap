@@ -140,10 +140,10 @@ CLASS zcl_10_itab_fcasas IMPLEMENTATION.
 
 *            gs_flight-flight_date = cl_abap_context_info=>get_system_date( ).  " Aca lo va cambiar por la fecha del sistema actual"
 
-       "OLD SYNTAXIS"
+    "OLD SYNTAXIS"
 *****   MODIFY gt_flights FROM gs_flight INDEX 2.  " Aca se especifica en que index se hará ese cambio para esa condicion.
 *****   MODIFY gt_flights FROM gs_flight TRANSPORTING flight_date.
-       "NEW SYNTAXIS"
+    "NEW SYNTAXIS"
 *        MODIFY gt_flights FROM VALUE #( connection_id = '111'
 *                                        carrier_id    = 'XX'
 *                                        plane_type_id = 'YY' ). "Si se cumple la condicion, hará estos cambios a estos campos, pero afectara los otros campos no especificados inicializandolos en 0."
@@ -160,21 +160,79 @@ CLASS zcl_10_itab_fcasas IMPLEMENTATION.
 
 *    out->write( |\n| ).
 *    out->write( data = gt_flights name = 'AFTER MODIFY / gt_gt_flights'  ).
-    
+
     "DELETE
-    
-    SELECT FROM /dmo/airport
-    FIELDS *
-    WHERE country = 'US'
-    INTO TABLE @DATA(gt_flights_struc). "DECLARACION EN LINEA TABLA INTERNA STANDART.
-    
-    IF sy-subrc = 0.
-    
-    out->write( data = gt_flights_struc name = 'BEFORE gt_flights_struc' ).
-    
-    LOOP AT gt_flights_struc INTO DATA(gs_flights_struc). "LECTURA DE LA TABLA INTERNA STANDART Y ALMACENADA EN LA ESTRUCTURA DECLARADA EN LINEA" 
-    
-    
-    ENDLOOP.
-    
-    ENDIF.
+
+*    SELECT FROM /dmo/airport
+*    FIELDS *
+*    WHERE country = 'US'
+*    INTO TABLE @DATA(gt_flights_struc). "DECLARACION EN LINEA TABLA INTERNA STANDART.
+*
+*    IF sy-subrc = 0.
+*
+*      out->write( data = gt_flights_struc name = 'gt_flights_struc' ).
+*
+*      DELETE gt_flights_struc WHERE airport_id = 'JFK' OR
+*                                    airport_id = 'BNA' OR
+*                                    airport_id = 'BOS'. "Eliminando registros con valores específicos en el campo airport_id"
+*
+*      out->write( |\n| ).
+*      out->write( data = gt_flights_struc name = 'Eliminando registro especifico JFK, BNA, BOS en gt_flights_struc' ).
+*
+*      DELETE gt_flights_struc INDEX 2.     "Eliminar con indice
+*
+*      out->write( |\n| ).
+*      out->write( data = gt_flights_struc name = 'Eliminando indice 2 gt_flights_struc' ).
+*
+*      DELETE gt_flights_struc FROM 5 TO 8. "Eliminar con RANGO
+*
+*      out->write( |\n| ).
+*      out->write( data = gt_flights_struc name = 'Eliminando indices con rango de 5-8 en gt_flights_struc' ).
+*
+*      DELETE gt_flights_struc WHERE city IS INITIAL. "La columna del registro completo se eliminaría solo si el campo CITY está vacío, incluso si los demás campos tienen valores
+*
+*      DELETE ADJACENT DUPLICATES FROM gt_flights_struc COMPARING country. "Elimina los registros duplicados en el campo especificado y no afecta a la primera coincidencia"
+*      out->write( |\n| ).
+*      out->write( data = gt_flights_struc name = 'Eliminando registros duplicados, manteniendo el primer registro en gt_flights_struc' ).
+*    ENDIF.
+*
+*****Almacenando la itab en una estructura
+*    IF lines( gt_flights_struc ) > 0.  "Verifica si almenos tiene un registro mi tabla interna"
+*      DATA(gs_flights_struc) = CORRESPONDING /dmo/airport( gt_flights_struc[ 1 ] ).
+*
+*      out->write( |\n| ).
+*      out->write( data = gs_flights_struc name = 'gs_flights_struc usando sintaxis moderna y indice' ).
+*    ENDIF.
+*
+*****VACIAR REGISTROS
+*
+*    gt_flights_struc = VALUE #( ).    "Borra los registros, pero la tabla sigue existiendo en la memoria"
+*    out->write( |\n| ).
+*    out->write( data = gs_flights_struc name = 'gs_flights_struc VACIO' ).
+*
+*    FREE gt_flights_struc.  "Borra los datos y también libera la memoria ocupada por la tabla interna"
+
+****COLLECT Mejor en SORT Y HASH
+
+TYPES: BEGIN OF ty_seats,
+         carrid TYPE /dmo/flight-carrier_id,
+         connid TYPE /dmo/flight-connection_id,
+         seats  TYPE /dmo/flight-seats_max,
+         price  TYPE /dmo/flight-price,
+       END OF ty_seats. " Definición de la estructura como tipo
+"tt_ = Table Type"
+TYPES tt_seats TYPE HASHED TABLE OF ty_seats WITH UNIQUE KEY carrid connid. " Definición explícita del tipo de tabla con KEY unicas carrid y connid
+
+DATA(gt_seats) = VALUE tt_seats( ). " Declaro tabla interna y uso VALUE con el tipo definido para inicializarlo
+
+SELECT carrier_id, connection_id, seats_max, price
+FROM /dmo/flight
+INTO @DATA(ls_seats).
+
+COLLECT ls_seats INTO gt_seats."  " Si ya existe un registro con el mismo 'carrid' y 'connid', se suman los valores numéricos (seats, price).
+                                  " Si no existe un registro con esa clave, se agrega como un nuevo registro.
+
+out->write( |\n| ).
+out->write( data = gt_seats name = 'gt_seats' ).
+
+ENDSELECT. "Finaliza la iteración sobre los registros seleccionados     
