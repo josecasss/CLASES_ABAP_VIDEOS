@@ -56,14 +56,14 @@ CLASS zcl_09_itab_fcasas IMPLEMENTATION.
 
     "Declaracion en linea con VALUE sin Asignacion # y insertar registros
     DATA(lt_employees2) = VALUE lty_employee( ( id            = '0001'
-                                               first_name    = 'Jose'
-                                               last_name     = 'Casas'
-                                               email         = 'josecasasmejia97@gmail.com'
-                                              phone_number  = '932492312'
-                                              salary        = '3000.2'
-                                              currency_code = 'EUR'        )
+                                                first_name    = 'Jose'
+                                                last_name     = 'Casas'
+                                                email         = 'josecasasmejia97@gmail.com'
+                                                phone_number  = '932492312'
+                                                salary        = '3000.2'
+                                                currency_code = 'EUR'        )
 
-                                              ( id            = '0002'
+                                              ( id           = '0002'
                                                first_name    = 'Samira'
                                                last_name     = 'Casas'
                                                email         = 'samcasss@gmail.com'
@@ -71,7 +71,7 @@ CLASS zcl_09_itab_fcasas IMPLEMENTATION.
                                                salary        = '3200.5'
                                                currency_code = 'EUR'        )
 
-                                              ( id            = '0003'
+                                              ( id           = '0003'
                                                first_name    = 'Paulina'
                                                last_name     = 'Sobik'
                                                email         = 'paulinasobik5@gmail.com'
