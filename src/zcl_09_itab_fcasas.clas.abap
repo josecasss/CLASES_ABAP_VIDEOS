@@ -44,7 +44,7 @@ CLASS zcl_09_itab_fcasas IMPLEMENTATION.
 
     TYPES lty_employee LIKE lt_employees.
 
-    lt_employees = VALUE #( ( id            = '0001'
+    lt_employees = VALUE #( (  id            = '0001'
                                first_name    = 'Jose'
                                last_name     = 'Casas'
                                email         = 'josecasasmejia97@gmail.com'
