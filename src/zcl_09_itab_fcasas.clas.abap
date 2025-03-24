@@ -284,8 +284,9 @@ CLASS zcl_09_itab_fcasas IMPLEMENTATION.
 
     DATA gt_flights TYPE STANDARD TABLE OF /dmo/flight.
 
-    SELECT FROM /dmo/flight
-    FIELDS *
+    "MEJOR PRACTICA SELECT, CONSULTAS"
+    SELECT *
+    FROM /dmo/flight
     WHERE carrier_id = 'LH'
     INTO TABLE @gt_flights.
 
