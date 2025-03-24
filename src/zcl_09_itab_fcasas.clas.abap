@@ -280,6 +280,9 @@ CLASS zcl_09_itab_fcasas IMPLEMENTATION.
     out->write( |\n| ).
     out->write( data = ls_flight4 name = 'ls_flight3 *Filtrando con KEY ' ).
 
+    Filtrado directo (DATA(ls_flight2) = lt_flights[ airport_id = 'SXF' ]) → Cuando necesitas almacenar y trabajar con el registro.
+    READ TABLE con TRANSPORTING NO FIELDS                                  → Cuando solo quieres verificar si el registro existe sin necesidad de almacenarlo.
+
     "LINE EXISTS
 
     DATA gt_flights TYPE STANDARD TABLE OF /dmo/flight.
@@ -290,20 +293,11 @@ CLASS zcl_09_itab_fcasas IMPLEMENTATION.
     WHERE carrier_id = 'LH'
     INTO TABLE @gt_flights.
 
-    IF sy-subrc = 0.  "Agregar esto en la nueva syntaxis  luego del line_exists"
-
-      READ TABLE gt_flights WITH KEY connection_id = '0403' TRANSPORTING NO FIELDS.
-
-      IF sy-subrc = 0. " SE USA USA ESTE IF Y ELSE PARA HACER VALIDACIONES DE REGISTROS"
-        out->write( 'The flight exists in the database' ).
-      ELSE.
-        out->write( 'The flight does not exists in the database' ).
-      ENDIF.
-
-    ENDIF.
+    READ TABLE gt_flights WITH KEY connection_id = '0403' TRANSPORTING NO FIELDS. "Usa TRANSPORTING NO FIELDS cuando solo quieras comprobar si un registro existe en una tabla interna sin necesidad de almacenarlo en una variable IMPORTANTISIMO
 
     "NEW SYNTAXIS"
 
+   IF sy-subrc = 0.  "Agregar esto en la nueva syntaxis  luego del line_exists"
     IF line_exists( gt_flights[ connection_id = '0403' ] ).
 
       out->write( 'The flight exists in the database' ).
@@ -311,7 +305,24 @@ CLASS zcl_09_itab_fcasas IMPLEMENTATION.
       out->write( 'The flight does not exists in the database' ).
     ENDIF.
 
-  ENDIF.
+"LINE_INDEX
+
+READ TABLE gt_flights WITH KEY connection_id = '0403' TRANSPORTING NO FIELDS. "Usa TRANSPORTING NO FIELDS cuando solo quieras comprobar si un registro existe en una tabla interna sin necesidad de almacenarlo en una variable
+
+"FUNCTION INDEX mejor practica"
+DATA(lv_index) = line_index( gt_flights[ connection_id = '0401' ] ).
+
+out->write( data = gt_flights name = gt_flights ).
+out->write( data = lv_index name = 'Iv_index' ).
+
+" LINES
+"Numero de registros
+DATA (Iv_num) = lines ( gt_flights ).
+out-›write ( data = lv_num name = lv_num ) •
+
+
+
+
 
 ENDMETHOD.
 ENDCLASS.
